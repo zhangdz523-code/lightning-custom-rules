@@ -22,19 +22,10 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Install Android SDK
-        run: |
-          echo "=== Pre-installed ==="
-          ls $ANDROID_HOME/platforms/
-          echo "=== Installing android-37 ==="
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            --licenses 2>&1 | tail -5
-          echo "=== Installing packages ==="
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-37.0" \
-            "build-tools;36.1.0" 2>&1 | tail -10
-          echo "=== After install ==="
-          ls $ANDROID_HOME/platforms/
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 13114758
 
       - name: Make gradlew executable
         run: chmod +x gradlew
