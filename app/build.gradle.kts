@@ -13,12 +13,12 @@ plugins {
 }
 
 android {
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         buildToolsVersion = "36.1.0"
         minSdk = 28
-        targetSdk = 37
+        targetSdk = 36
         versionName = "5.1.0"
         vectorDrawables.useSupportLibrary = true
     }
@@ -162,7 +162,7 @@ dependencies {
     implementation("com.anthonycr.mezzanine:core:$mezzanineVersion")
     implementation("com.google.android.material:material:1.14.0")
     implementation("com.google.dagger:dagger:$daggerVersion")
-    implementation("com.guolindev.permissionx:permissionx:1.8.0")
+    implementation("com.guolindev.permissionx:permissionx:1.8.1")
     implementation("com.squareup.okhttp3:okhttp:5.5.0")
     implementation("com.squareup.okio:okio:3.18.2")
     implementation("io.coil-kt.coil3:coil-compose:$coil")
