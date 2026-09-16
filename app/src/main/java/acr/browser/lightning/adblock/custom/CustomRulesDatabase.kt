@@ -66,10 +66,8 @@ class CustomRulesDatabase @Inject constructor(
 
     override suspend fun setRuleEnabled(pattern: String, enabled: Boolean): Unit =
         withContext(NonCancellable + databaseDispatcher) {
-            database.execSQL(
-                "UPDATE $TABLE_RULES SET $KEY_ENABLED=? WHERE $KEY_PATTERN=?",
-                arrayOf(if (enabled) 1 else 0, pattern)
-            )
+            val values = ContentValues().apply { put(KEY_ENABLED, if (enabled) 1 else 0) }
+            database.update(TABLE_RULES, values, "$KEY_PATTERN=?", arrayOf(pattern))
             refreshCache()
         }
 
