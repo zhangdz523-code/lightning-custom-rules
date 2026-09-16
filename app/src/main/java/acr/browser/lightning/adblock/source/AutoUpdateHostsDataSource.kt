@@ -5,6 +5,7 @@ import acr.browser.lightning.concurrency.CoroutineDispatchers
 import acr.browser.lightning.database.adblock.Host
 import acr.browser.lightning.log.Logger
 import android.app.Application
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
@@ -133,6 +134,6 @@ class AutoUpdateHostsDataSource @Inject constructor(
             "https://badmojr.github.io/1Hosts/Lite/hosts.txt",
             "https://hostsfile.org/Downloads/hosts.txt",
             "https://block.energized.pro/basic/formats/domains.txt"
-        )
+        ).mapNotNull { it.toHttpUrlOrNull() }
     }
 }
