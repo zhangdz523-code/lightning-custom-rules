@@ -24,40 +24,47 @@ jobs:
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 13114758
 
       - name: Accept SDK licenses
         run: |
-          yes | "$ANDROID_HOME/sdkmanager" --licenses || true
+          echo "android-sdk-license-24333f8a63b68ba5e66633e06230f174b7f5465d" > $ANDROID_HOME/licenses/android-sdk-license
+          echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-license
+          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_HOME/licenses/android-sdk-license
 
-      - name: Install required SDK components
+      - name: Install SDK components
         run: |
-          "$ANDROID_HOME/sdkmanager" "platform-tools" "platforms;android-37" "build-tools;36.1.0"
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-37" "build-tools;36.1.0"
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon --stacktrace --info
         env:
-          GRADLE_OPTS: -Xmx4g -Dorg.gradle.jvmargs="-Xmx4g"
+          GRADLE_OPTS: -Xmx4g
 
-      - name: Upload Lightning Lite APK
+      - name: Find APK files
+        run: |
+          echo "=== Searching for APKs ==="
+          find app/build/outputs -name "*.apk" -exec ls -lh {} \; || echo "No APKs found"
+          find app/build -name "*.apk" 2>/dev/null | head -10
+
+      - name: Upload APK (Lightning Lite)
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lightning-lite-debug.apk
-          path: app/build/outputs/apk/lightningLite/debug/*.apk
+          path: |
+            app/build/outputs/apk/lightningLite/debug/*.apk
+            app/build/outputs/apk/debug/*.apk
           if-no-files-found: ignore
 
-      - name: Upload Lightning Plus APK
+      - name: Upload APK (Lightning Plus)
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lightning-plus-debug.apk
           path: app/build/outputs/apk/lightningPlus/debug/*.apk
           if-no-files-found: ignore
-
-      - name: List build outputs
-        run: |
-          echo "=== APK outputs ==="
-          find app/build/outputs/apk -name "*.apk" -exec ls -lh {} \;
