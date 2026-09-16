@@ -23,15 +23,16 @@ jobs:
           cache: gradle
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: 13114758
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          ls $ANDROID_HOME/platforms/
+          ls $ANDROID_HOME/build-tools/
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+        run: ./gradlew assembleDebug --no-daemon
         env:
           GRADLE_OPTS: -Xmx4g
 
