@@ -22,21 +22,19 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Show pre-installed Android SDK
+      - name: Install Android SDK
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          ls $ANDROID_HOME/
-          echo "---"
-          ls $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms"
-          ls $ANDROID_HOME/build-tools/ 2>/dev/null || echo "No build-tools"
-          which sdkmanager 2>/dev/null || find $ANDROID_HOME -name "sdkmanager" 2>/dev/null
-
-      - name: Install SDK components
-        run: |
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
-            "platform-tools" \
+          echo "=== Pre-installed ==="
+          ls $ANDROID_HOME/platforms/
+          echo "=== Installing android-37 ==="
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+            --licenses 2>&1 | tail -5
+          echo "=== Installing packages ==="
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
             "platforms;android-37" \
-            "build-tools;36.1.0" 2>&1
+            "build-tools;36.1.0" 2>&1 | tail -10
+          echo "=== After install ==="
+          ls $ANDROID_HOME/platforms/
 
       - name: Make gradlew executable
         run: chmod +x gradlew
@@ -48,10 +46,8 @@ jobs:
 
       - name: Find APK files
         run: |
-          echo "=== APK output directory ==="
-          find app/build/outputs -type f -name "*.apk" 2>/dev/null | head -20
-          echo "=== APK sizes ==="
-          find app/build/outputs -name "*.apk" -exec ls -lh {} \; 2>/dev/null
+          echo "=== APKs ==="
+          find app/build/outputs -name "*.apk" -exec ls -lh {} \; 2>/dev/null || echo "No APKs found"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
