@@ -31,7 +31,7 @@ jobs:
             --licenses 2>&1 | tail -5
           echo "=== Installing packages ==="
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-37" \
+            "platforms;android-37.0" \
             "build-tools;36.1.0" 2>&1 | tail -10
           echo "=== After install ==="
           ls $ANDROID_HOME/platforms/
