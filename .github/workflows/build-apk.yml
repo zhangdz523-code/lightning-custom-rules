@@ -22,49 +22,41 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          cmdline-tools-version: 13114758
-
-      - name: Accept SDK licenses
+      - name: Show pre-installed Android SDK
         run: |
-          echo "android-sdk-license-24333f8a63b68ba5e66633e06230f174b7f5465d" > $ANDROID_HOME/licenses/android-sdk-license
-          echo "84831b9409646a918e30573bab4c9c91346d8abd" >> $ANDROID_HOME/licenses/android-sdk-license
-          echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> $ANDROID_HOME/licenses/android-sdk-license
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls $ANDROID_HOME/
+          echo "---"
+          ls $ANDROID_HOME/platforms/ 2>/dev/null || echo "No platforms"
+          ls $ANDROID_HOME/build-tools/ 2>/dev/null || echo "No build-tools"
+          which sdkmanager 2>/dev/null || find $ANDROID_HOME -name "sdkmanager" 2>/dev/null
 
       - name: Install SDK components
         run: |
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install "platform-tools" "platforms;android-37" "build-tools;36.1.0"
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-37" \
+            "build-tools;36.1.0" 2>&1
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace --info
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
         env:
           GRADLE_OPTS: -Xmx4g
 
       - name: Find APK files
         run: |
-          echo "=== Searching for APKs ==="
-          find app/build/outputs -name "*.apk" -exec ls -lh {} \; || echo "No APKs found"
-          find app/build -name "*.apk" 2>/dev/null | head -10
+          echo "=== APK output directory ==="
+          find app/build/outputs -type f -name "*.apk" 2>/dev/null | head -20
+          echo "=== APK sizes ==="
+          find app/build/outputs -name "*.apk" -exec ls -lh {} \; 2>/dev/null
 
-      - name: Upload APK (Lightning Lite)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: lightning-lite-debug.apk
-          path: |
-            app/build/outputs/apk/lightningLite/debug/*.apk
-            app/build/outputs/apk/debug/*.apk
-          if-no-files-found: ignore
-
-      - name: Upload APK (Lightning Plus)
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: lightning-plus-debug.apk
-          path: app/build/outputs/apk/lightningPlus/debug/*.apk
+          name: lightning-debug-apk
+          path: app/build/outputs/apk/**/*.apk
           if-no-files-found: ignore
