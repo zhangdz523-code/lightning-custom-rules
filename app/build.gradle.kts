@@ -13,12 +13,12 @@ plugins {
 }
 
 android {
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         buildToolsVersion = "36.1.0"
         minSdk = 28
-        targetSdk = 37
+        targetSdk = 36
         versionName = "5.1.0"
         vectorDrawables.useSupportLibrary = true
     }
