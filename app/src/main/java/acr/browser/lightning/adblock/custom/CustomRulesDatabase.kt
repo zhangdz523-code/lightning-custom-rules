@@ -46,11 +46,6 @@ class CustomRulesDatabase @Inject constructor(
         onCreate(db)
     }
 
-    override fun onOpen(db: SQLiteDatabase) {
-        super.onOpen(db)
-        refreshCache()
-    }
-
     override suspend fun addRule(rule: CustomRule): Boolean =
         withContext(NonCancellable + databaseDispatcher) {
             if (containsRule(rule.pattern)) return@withContext false
@@ -69,7 +64,7 @@ class CustomRulesDatabase @Inject constructor(
             deleted
         }
 
-    override suspend fun setRuleEnabled(pattern: String, enabled: Boolean) =
+    override suspend fun setRuleEnabled(pattern: String, enabled: Boolean): Unit =
         withContext(NonCancellable + databaseDispatcher) {
             database.execSQL(
                 "UPDATE $TABLE_RULES SET $KEY_ENABLED=? WHERE $KEY_PATTERN=?",
@@ -99,6 +94,9 @@ class CustomRulesDatabase @Inject constructor(
         }
 
     override fun matchesAnyRule(url: String): Boolean {
+        if (enabledRulesCache.isEmpty()) {
+            refreshCache()
+        }
         if (enabledRulesCache.isEmpty()) return false
         val uri = try { Uri.parse(url) } catch (_: Exception) { return false }
         val host = uri.host?.lowercase() ?: return false
@@ -106,7 +104,7 @@ class CustomRulesDatabase @Inject constructor(
         return enabledRulesCache.values.any { it.matches(host, fullUrl) }
     }
 
-    override suspend fun removeAllRules() =
+    override suspend fun removeAllRules(): Unit =
         withContext(NonCancellable + databaseDispatcher) {
             database.delete(TABLE_RULES, null, null)
             refreshCache()
@@ -127,8 +125,9 @@ class CustomRulesDatabase @Inject constructor(
 
     /**
      * Rebuild the in-memory cache of enabled rules from the database.
+     * This runs synchronously on the calling thread.
      */
-    private suspend fun refreshCache() = withContext(NonCancellable + databaseDispatcher) {
+    private fun refreshCache() {
         enabledRulesCache.clear()
         database.query(TABLE_RULES, null, "$KEY_ENABLED=1", null, null, null, null)
             .useMap {
@@ -168,12 +167,10 @@ class CustomRulesDatabase @Inject constructor(
         fun matches(host: String, fullUrl: String): Boolean {
             return when {
                 isWildcardPattern -> {
-                    // Substring match on host or full URL
                     host.contains(basePattern, ignoreCase = true) ||
                         fullUrl.contains(basePattern, ignoreCase = true)
                 }
                 isWildcardSubdomain -> {
-                    // *.tracker.com matches tracker.com and any subdomain
                     host == basePattern || host.endsWith(".${basePattern}")
                 }
                 isExactDomain -> host == basePattern || host.endsWith(".${basePattern}")
